@@ -1,9 +1,9 @@
 #!/bin/bash
 input=$1
 part=${2:-1}
+score=0
 
 if [ $part -eq 1 ]; then
-  score=0
   while read group; do
     count=$(echo $group | cut -d' ' -f1)
     round=$(echo $group | cut -d' ' -f2-3)
@@ -20,9 +20,7 @@ if [ $part -eq 1 ]; then
     esac
     score=$(($score+($points*$count)))
   done < <(sort $input | uniq -c)
-  echo $score
 else
-  score=0
   while read group; do
     count=$(echo $group | cut -d' ' -f1)
     round=$(echo $group | cut -d' ' -f2-3)
@@ -39,5 +37,5 @@ else
     esac
     score=$(($score+($points*$count)))
   done < <(sort $input | uniq -c)
-  echo $score
 fi
+echo $score
