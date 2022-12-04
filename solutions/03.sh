@@ -30,6 +30,5 @@ else
     idx=$((${#priority} - ${#substr}))
     score=$(($score+$idx))
   done < <(cat $input)
-  echo $score
 fi
 echo $score
