@@ -2,17 +2,22 @@
 input=$1
 part=${2:-1}
 
+(
 IFS=
-setup=$(while read -r line; do [ -z "$line" ] && break; echo $line; done < <(cat $input) | tac)
-cols=$(echo "$setup" | head -n 1 |  awk '{ print $(NF); }')
+while read line; do
+  [ -z "$line" ] && break
+  setup="$line"$'\n'"$setup"
+done
+
+cols=$(echo $setup | head -n 1 | awk '{ print $(NF); }')
+
 stacks=()
 while read line; do
   for ((col=1; col <= $cols; col += 1)); do
     val=${line:$((col-1)):1}
     [ "$val" != 0 ] && stacks[$col]="$val${stacks[$col]}"
   done
-done < <(echo "$setup" | tail -n +2 | sed 's/[[^ ]   /[0]/g' | sed 's/[][ ]//g')
-# ${stacks[n]} = stack n as a string, first letter is the top crate
+done < <(echo $setup | tail -n +2 | sed 's/[[^ ]   /[0]/g; s/[][ ]//g')
 
 if [ $part -eq 1 ]; then
   while read command; do
@@ -22,15 +27,17 @@ if [ $part -eq 1 ]; then
       stacks[$from]="${stacks[$from]:1}"
       stacks[$to]="$token${stacks[$to]}"
     done
-  done < <(cat $input | sed -e '1,/^$/d')
+  done
 else
   while read command; do
     IFS=' ' read quantity from to < <(awk '{ print $2, $4, $6 }' <<< $command)
     token=${stacks[$from]:0:$quantity}
     stacks[$from]="${stacks[$from]:$quantity}"
     stacks[$to]="$token${stacks[$to]}"
-  done < <(cat $input | sed -e '1,/^$/d')
+  done
 fi
 
 for ((col=1; col <= $cols; col += 1)); do str="$str${stacks[$col]:0:1}"; done
 echo $str
+
+) < <(cat $input)
