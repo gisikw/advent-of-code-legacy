@@ -11,9 +11,7 @@ fi
 read signal < <(cat $input)
 idx=$len
 while true; do
-  sequence=${signal:0:$len}
-  unique=$(echo $sequence | fold -w1 | sort -u | wc -l)
-  if [ $unique -eq $len ]; then
+  if [ -z $(echo ${signal:0:$len} | grep '\(.\).*\1') ]; then
     echo $idx
     break;
   fi
