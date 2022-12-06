@@ -12,8 +12,8 @@ read signal < <(cat $input)
 idx=$len
 while true; do
   sequence=${signal:0:$len}
-  unique=$(echo $sequence | grep -o . | sort | tr -d "\n" | tr -s '[a-z]')
-  if [ ${#unique} -eq $len ]; then
+  unique=$(echo $sequence | fold -w1 | sort -u | wc -l)
+  if [ $unique -eq $len ]; then
     echo $idx
     break;
   fi
