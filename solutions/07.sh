@@ -25,6 +25,7 @@ while read cmd; do
   fi
 done < <(cat $input)
 files+="/ "
+files=$(echo "$files" | sort | uniq)
 
 while read dir; do
   size=$(echo "$files" | grep $dir | grep -v '/ ' | cut -d' ' -f2 | awk '{s+=$1} END {print s}')
