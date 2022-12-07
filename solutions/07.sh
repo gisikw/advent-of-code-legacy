@@ -28,7 +28,7 @@ files+="/ "
 files=$(echo "$files" | sort | uniq)
 
 while read dir; do
-  size=$(echo "$files" | grep $dir | grep -v '/ ' | cut -d' ' -f2 | awk '{s+=$1} END {print s}')
+  size=$(echo "$files" | grep "$dir.*[^\/] " | cut -d' ' -f2 | awk '{s+=$1} END {print s}')
   files=$(echo "$files" | sed "s~^$dir ~$dir $size~")
 done < <(echo "$files" | grep '/ ' | awk -F "/" '{print NF-1, $0}' | sort -nr | cut -d' ' -f2)
 
