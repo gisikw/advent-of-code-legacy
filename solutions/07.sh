@@ -1,41 +1,39 @@
 #!/bin/bash
 input=$(realpath $1)
 part=${2:-1}
-old_cwd=$CWD
 
-# What is a filesystem but a tree with prebuilt utilities?
-playground=$(mktemp -d)
-cd $playground
+wd="/"
+files=""
+
 while read cmd; do
   if [ "${cmd:0:1}" == "$" ]; then
     if [ "${cmd:2:2}" == "cd" ]; then
       path="${cmd:5}"
       case $path in
-        /) cd $playground;;
-        ..) cd ..;;
-        *) mkdir -p $path && cd $path;;
+        /) wd="/";;
+        ..) wd="$(echo "$(dirname $wd)/" | sed 's/\/\//\//')";;
+        *) wd="$wd$path/";;
       esac
     fi
   else
     read size name <<< $cmd
-    [ "$size" == "dir" ] && mkdir -p $name || echo $size > $name
+    if [ "$size" == "dir" ]; then
+      size=""
+      name="$name/"
+    fi
+    files+="$wd$name $size"$'\n'
   fi
 done < <(cat $input)
+files+="/ "
 
-# Aggregate sizes, deepest dirs first
 while read dir; do
-  cd $playground; cd $dir
-  {
-    find . -type f -maxdepth 1;
-    find . -type f -name sum.txt -depth 2
-  } | xargs cat | awk '{s+=$1} END {print s}' > sum.txt
-done < <(cd $playground && find . -type d | awk -F "/" '{print NF-1, $0}' | sort -nr | cut -d' ' -f2)
+  size=$(echo "$files" | grep $dir | grep -v '/ ' | cut -d' ' -f2 | awk '{s+=$1} END {print s}')
+  files=$(echo "$files" | sed "s~^$dir ~$dir $size~")
+done < <(echo "$files" | grep '/ ' | awk -F "/" '{print NF-1, $0}' | sort -nr | cut -d' ' -f2)
 
-cd $playground
 if [ $part -eq 1 ]; then
-  find . -type f -name sum.txt | xargs cat | awk '{if($1<=100000)s+=$1} END {print s}'
+  echo "$files" | grep '/ ' | cut -d' ' -f2 | awk '{if($1<=100000)s+=$1} END {print s}'
 else
-  target=$((30000000-(70000000-$(cat $playground/sum.txt))))
-  find . -type f -name sum.txt | xargs cat | awk '{if($1>'"$target"')print $1}' | sort -n | head -n 1
+  target=$((30000000-(70000000-$(echo "$files" | grep '^/ ' | cut -d' ' -f2))))
+  echo "$files" | grep '/ ' | cut -d' ' -f2 | awk '{if($1>'"$target"')print $1}' | sort -n | head -n 1
 fi
-cd $old_cwd && rm -rf $playground
