@@ -4,10 +4,11 @@ part=${2:-1}
 
 height=$(wc -l $input | awk '{print $1}')
 width=$(($(cat $input | head -n 1 | wc -c | awk '{print $1}')-1))
-map=$(cat $input | tr -d '\n')
+map=()
+while read line; do map+=($line); done < <(cat $input)
 
 mapat() {
-  echo ${map:((($2*$width)+$1)):1}
+  echo ${map[$2]:$1:1}
 }
 
 if [ $part -eq 1 ]; then
@@ -60,6 +61,7 @@ else
     for ((y=0; y<height; y++)); do
       value=$(mapat $x $y)
       view=1
+      distance=0
       for ((x2=x+1; x2<width; x2++)); do
         ((distance++))
         [ $(mapat $x2 $y) -ge $value ] && break;
@@ -83,6 +85,7 @@ else
         [ $(mapat $x $y2) -ge $value ] && break;
       done
       ((view*=distance))
+      distance=0
       echo $view
     done
   done | sort -nr | head -n 1
