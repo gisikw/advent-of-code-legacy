@@ -56,40 +56,34 @@ $((width-1)),0"
 
   echo "$visible" | sort | uniq | wc -l | awk '{print $1}'
 else
-  score() {
-    x=$1; y=$2;
-    value=$(mapat $x $y)
-    view=1
-    for ((x2=x+1; x2<width; x2++)); do
-      ((distance++))
-      [ $(mapat $x2 $y) -ge $value ] && break;
-    done
-    ((view*=distance))
-    distance=0
-    for ((x2=x-1; x2>=0; x2--)); do
-      ((distance++))
-      [ $(mapat $x2 $y) -ge $value ] && break;
-    done
-    ((view*=distance))
-    distance=0
-    for ((y2=y+1; y2<height; y2++)); do
-      ((distance++))
-      [ $(mapat $x $y2) -ge $value ] && break;
-    done
-    ((view*=distance))
-    distance=0
-    for ((y2=y-1; y2>=0; y2--)); do
-      ((distance++))
-      [ $(mapat $x $y2) -ge $value ] && break;
-    done
-    ((view*=distance))
-    distance=0
-    echo $view
-  }
-
   for ((x=0; x<width; x++)); do
     for ((y=0; y<height; y++)); do
-      echo $(score $x $y)
+      value=$(mapat $x $y)
+      view=1
+      for ((x2=x+1; x2<width; x2++)); do
+        ((distance++))
+        [ $(mapat $x2 $y) -ge $value ] && break;
+      done
+      ((view*=distance))
+      distance=0
+      for ((x2=x-1; x2>=0; x2--)); do
+        ((distance++))
+        [ $(mapat $x2 $y) -ge $value ] && break;
+      done
+      ((view*=distance))
+      distance=0
+      for ((y2=y+1; y2<height; y2++)); do
+        ((distance++))
+        [ $(mapat $x $y2) -ge $value ] && break;
+      done
+      ((view*=distance))
+      distance=0
+      for ((y2=y-1; y2>=0; y2--)); do
+        ((distance++))
+        [ $(mapat $x $y2) -ge $value ] && break;
+      done
+      ((view*=distance))
+      echo $view
     done
   done | sort -nr | head -n 1
 fi
