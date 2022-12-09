@@ -7,10 +7,6 @@ width=$(($(cat $input | head -n 1 | wc -c | awk '{print $1}')-1))
 map=()
 while read line; do map+=($line); done < <(cat $input)
 
-mapat() {
-  echo ${map[$2]:$1:1}
-}
-
 if [ $part -eq 1 ]; then
   visible=("0,0" "$((width-1)),$((height-1))" "0,$((height-1))" "$((width-1)),0")
 
@@ -19,16 +15,16 @@ if [ $part -eq 1 ]; then
     visible+=("$x,$((height-1))")
 
     # March in from top
-    max=$(mapat $x 0)
+    max="${map[0]:x:1}"
     for ((y=1; y<height-1; y++)); do
-      here=$(mapat $x $y)
+      here="${map[y]:x:1}"
       [ $here -gt $max ] && visible+=("$x,$y") && max=$here
     done
 
     # March in from bottom
-    max=$(mapat $x $((height-1)))
+    max="${map[((height-1))]:x:1}"
     for ((y=height-2; y>=0; y--)); do
-      here=$(mapat $x $y)
+      here="${map[y]:x:1}"
       [ $here -gt $max ] && visible+=("$x,$y") && max=$here
     done
   done
@@ -38,16 +34,16 @@ if [ $part -eq 1 ]; then
     visible+=("$((width-1)),$y")
 
     # March in from left
-    max=$(mapat 0 $y)
+    max="${map[y]:0:1}"
     for ((x=1; x<width-1; x++)); do
-      here=$(mapat $x $y)
+      here="${map[y]:x:1}"
       [ $here -gt $max ] && visible+=("$x,$y") && max=$here
     done
 
     # March in from right
-    max=$(mapat $((width-1)) $y)
+    max="${map[y]:((width-1)):1}"
     for ((x=width-2; x>=0; x--)); do
-      here=$(mapat $x $y)
+      here="${map[y]:x:1}"
       [ $here -gt $max ] && visible+=("$x,$y") && max=$here
     done
   done
@@ -56,30 +52,30 @@ if [ $part -eq 1 ]; then
 else
   for ((x=0; x<width; x++)); do
     for ((y=0; y<height; y++)); do
-      value=$(mapat $x $y)
+      value="${map[y]:x:1}"
       view=1
       distance=0
       for ((x2=x+1; x2<width; x2++)); do
         ((distance++))
-        [ $(mapat $x2 $y) -ge $value ] && break;
+        [ ${map[y]:x2:1} -ge $value ] && break;
       done
       ((view*=distance))
       distance=0
       for ((x2=x-1; x2>=0; x2--)); do
         ((distance++))
-        [ $(mapat $x2 $y) -ge $value ] && break;
+        [ ${map[y]:x2:1} -ge $value ] && break;
       done
       ((view*=distance))
       distance=0
       for ((y2=y+1; y2<height; y2++)); do
         ((distance++))
-        [ $(mapat $x $y2) -ge $value ] && break;
+        [ ${map[y2]:x:1} -ge $value ] && break;
       done
       ((view*=distance))
       distance=0
       for ((y2=y-1; y2>=0; y2--)); do
         ((distance++))
-        [ $(mapat $x $y2) -ge $value ] && break;
+        [ ${map[y2]:x:1} -ge $value ] && break;
       done
       ((view*=distance))
       distance=0
