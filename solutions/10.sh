@@ -5,15 +5,8 @@ part=${2:-1}
 x=1;cycle=1;queue=();
 if [ $part -eq 1 ]; then
   while read cmd val; do
-    case $cmd in
-      addx) 
-        ((cycle++))
-        echo "$cycle $x"
-        ((cycle++))
-        ((x+=$val));;
-      noop) 
-        ((cycle++));;
-    esac
+    ((cycle++))
+    [ "$cmd" == "addx" ] && echo "$((cycle++)) $x" && ((x+=$val))
     echo "$cycle $x"
   done < <(cat $input) | \
     sed -n '19p;59p;99p;139p;179p;219p;' |\
@@ -23,16 +16,11 @@ else
   (while read cmd val; do
     delta=$((cycle%40-1-x))
     if [ ${delta#-} -le 1 ]; then printf '#'; else printf '.'; fi
-    case $cmd in
-      addx) 
-        ((cycle++))
-        delta=$((cycle%40-1-x))
-        if [ ${delta#-} -le 1 ]; then printf '#'; else printf '.'; fi
-        ((cycle++))
-        ((x+=$val))
-        ;;
-      noop) 
-        ((cycle++))
-    esac
+    ((cycle++))
+    if [ "$cmd" == "addx" ]; then
+      delta=$(((cycle++)%40-1-x))
+      if [ ${delta#-} -le 1 ]; then printf '#'; else printf '.'; fi
+      ((x+=$val))
+    fi
   done < <(cat $input); printf "\n") | fold -w 40
 fi
