@@ -8,10 +8,7 @@ if [ $part -eq 1 ]; then
     ((cycle++))
     [ "$cmd" == "addx" ] && echo "$((cycle++)) $x" && ((x+=$val))
     echo "$cycle $x"
-  done < <(cat $input) | \
-    sed -n '19p;59p;99p;139p;179p;219p;' |\
-    while read cycle val; do echo $((cycle*val)); done |\
-    awk '{s+=$1} END {print s}'
+  done < <(cat $input) | sed -n '19p;59p;99p;139p;179p;219p;' | awk '{s+=$1*$2}END{print s}'
 else
   (while read cmd val; do
     delta=$((cycle%40-1-x))
