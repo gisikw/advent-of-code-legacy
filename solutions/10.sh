@@ -2,53 +2,37 @@
 input=$1
 part=${2:-1}
 
+x=1;cycle=1;queue=();
 if [ $part -eq 1 ]; then
-  x=1;cycle=1;queue=();
-  while read line; do
-    read cmd val <<< $line
+  while read cmd val; do
     case $cmd in
       addx) 
         ((cycle++))
         echo "$cycle $x"
         ((cycle++))
-        ((x+=$val))
-        echo "$cycle $x"
-        ;;
+        ((x+=$val));;
       noop) 
-        ((cycle++))
-        echo "$cycle $x";;
+        ((cycle++));;
     esac
-  done < <(cat $input; echo "noop"; echo "noop"; echo "noop") | \
-    sed -n '19p;59p;99p;139p;179p;219p;' | while read line; do
-      read cycle val <<< $line
-      echo $((cycle*val))
-    done | awk '{s+=$1} END {print s}'
+    echo "$cycle $x"
+  done < <(cat $input) | \
+    sed -n '19p;59p;99p;139p;179p;219p;' |\
+    while read cycle val; do echo $((cycle*val)); done |\
+    awk '{s+=$1} END {print s}'
 else
-  x=1;cycle=1;queue=();
-  while read line; do
-    read cmd val <<< $line
-    pos=$((cycle%40-1)) 
-    delta=$((pos-x))
-    if [ ${delta#-} -le 1 ]; then
-      echo -n "#"
-    else
-      echo -n "."
-    fi
+  (while read cmd val; do
+    delta=$((cycle%40-1-x))
+    if [ ${delta#-} -le 1 ]; then printf '#'; else printf '.'; fi
     case $cmd in
       addx) 
         ((cycle++))
-        pos=$((cycle%40-1)) 
-        delta=$((pos-x))
-        if [ ${delta#-} -le 1 ]; then
-          echo -n "#"
-        else
-          echo -n "."
-        fi
+        delta=$((cycle%40-1-x))
+        if [ ${delta#-} -le 1 ]; then printf '#'; else printf '.'; fi
         ((cycle++))
         ((x+=$val))
         ;;
       noop) 
         ((cycle++))
     esac
-  done < <(cat $input) | fold -w 40
+  done < <(cat $input); printf "\n") | fold -w 40
 fi
