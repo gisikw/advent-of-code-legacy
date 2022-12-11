@@ -33,14 +33,10 @@ if [ $part -eq 1 ]; then
   done
 else
   IFS=$'\n' largest_divisor=$(sort -nr <<<"${divisors[*]}" | head -n1); unset IFS
-  lcd=$largest_divisor
-  while true; do
+  for ((lcd=$largest_divisor; ;lcd+=$largest_divisor)); do
     state=0
-    for d in ${divisors[@]}; do
-      [ $((lcd%d)) -eq 0 ] || state=1
-    done
+    for d in ${divisors[@]}; do [ $((lcd%d)) -ne 0 ] && state=1 && break; done
     [ $state -eq 0 ] && break;
-    ((lcd+=$largest_divisor))
   done
   for ((round=0; round < 10000; round++)); do
     for ((i=0; i < ${#items[@]}; i++)); do
@@ -48,8 +44,7 @@ else
         ((inspects[i]++))
         left=${ltokens[i]}; [ $left == "old" ] && left=$j
         right=${rtokens[i]}; [ $right == "old" ] && right=$j
-        if [ "${combinators[i]}" == "+" ]; then j=$((left+right)); else j=$((left*right)); fi
-        j=$((j%lcd))
+        if [ "${combinators[i]}" == "+" ]; then j=$(((left+right)%lcd)); else j=$(((left*right)%lcd)); fi
         if [ $((j%${divisors[i]})) -eq 0 ]; then
           items[${trues[i]}]+=" $j"
         else
