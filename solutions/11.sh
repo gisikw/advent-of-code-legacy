@@ -32,12 +32,7 @@ if [ $part -eq 1 ]; then
     done
   done
 else
-  IFS=$'\n' largest_divisor=$(sort -nr <<<"${divisors[*]}" | head -n1); unset IFS
-  for ((lcd=$largest_divisor; ;lcd+=$largest_divisor)); do
-    state=0
-    for d in ${divisors[@]}; do [ $((lcd%d)) -ne 0 ] && state=1 && break; done
-    [ $state -eq 0 ] && break;
-  done
+  lcd=1; for d in ${divisors[@]}; do ((lcd*=d)); done
   for ((round=0; round < 10000; round++)); do
     for ((i=0; i < ${#items[@]}; i++)); do
       for j in ${items[i]}; do
