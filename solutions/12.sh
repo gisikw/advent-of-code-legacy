@@ -30,8 +30,7 @@ if [ $part -eq 1 ]; then
   ((width--))
 
   while true; do
-    x=${queue[0]}; queue=("${queue[@]:1}")
-    y=${queue[0]}; queue=("${queue[@]:1}")
+    x=${queue[q_index++]}; y=${queue[q_index++]};
     depth=$((${distances[((y*width+x))]}+1))
 
     if [ $x -eq $end_x ] && [ $y -eq $end_y ]; then
@@ -99,8 +98,7 @@ else
   ((width--))
   
   while true; do
-    x=${queue[0]}; queue=("${queue[@]:1}")
-    y=${queue[0]}; queue=("${queue[@]:1}")
+    x=${queue[q_index++]}; y=${queue[q_index++]};
     depth=$((${distances[((y*width+x))]}+1))
 
     val=${map[((y*width+x))]}; compval=$((val-1))
