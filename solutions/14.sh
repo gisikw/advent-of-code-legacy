@@ -12,17 +12,11 @@ while read line; do
     x2=${points[i+1]/,*}; y2=${points[i+1]/*,};
     [ $y1 -gt $maxy ] && maxy=$y1; [ $y2 -gt $maxy ] && maxy=$y2
     if [ $x1 -eq $x2 ]; then
-      if [ $y1 -le $y2 ]; then
-        for ((y=$y1; y<=$y2; y++)); do map[y*width+x1]=1; done
-      else
-        for ((y=$y2; y<=$y1; y++)); do map[y*width+x1]=1; done
-      fi
+      if [ $y1 -gt $y2 ]; then yt=$y1; y1=$y2; y2=$yt; fi
+      for ((y=$y1; y<=$y2; y++)); do map[y*width+x1]=1; done
     else
-      if [ $x1 -le $x2 ]; then
-        for ((x=$x1; x<=$x2; x++)); do map[y1*width+x]=1; done
-      else
-        for ((x=$x2; x<=$x1; x++)); do map[y1*width+x]=1; done
-      fi
+      if [ $x1 -gt $x2 ]; then xt=$x1; x1=$x2; x2=$xt; fi
+      for ((x=$x1; x<=$x2; x++)); do map[y1*width+x]=1; done
     fi
   done
 done <$input
