@@ -2,7 +2,7 @@
 input=$1
 part=${2:-1}
 
-map=(); maxy=0;
+map=(); path=(500 0); maxy=0;
 width=1000
 
 while read line; do
@@ -29,24 +29,31 @@ done <$input
 
 if [ $part -eq 1 ]; then
   for ((i=0; ; i++)); do
-    x=500;y=0;
     while true; do
+      x=${path[${#path[@]}-2]}; y=${path[${#path[@]}-1]};
       [ $y -eq $maxy ] && echo $i && exit
-      if [ -z ${map[(y+1)*width+x]} ]; then ((y++)); continue; fi
-      if [ -z ${map[(y+1)*width+x-1]} ]; then ((y++)); ((x--)); continue; fi
-      if [ -z ${map[(y+1)*width+x+1]} ]; then ((y++)); ((x++)); continue; fi
-      map[y*width+x]=2; break
+      if [ -z ${map[(y+1)*width+x]} ]; then path+=($x $((y+1))); continue; fi
+      if [ -z ${map[(y+1)*width+x-1]} ]; then path+=($((x-1)) $((y+1))); continue; fi
+      if [ -z ${map[(y+1)*width+x+1]} ]; then path+=($((x+1)) $((y+1))); continue; fi
+      map[y*width+x]=2
+      unset path[${#path[@]}-1]; unset path[${#path[@]}-1];
+      break
     done
   done
 else
   ((maxy++))
   for ((i=0; ; i++)); do
-    x=500;y=0; [ ! -z "${map[y*width+x]}" ] && echo $i && exit
     while true; do
-      if [ $y -eq $maxy ]; then map[y*width+x]=2; break; fi
-      if [ -z ${map[(y+1)*width+x]} ]; then ((y++)); continue; fi
-      if [ -z ${map[(y+1)*width+x-1]} ]; then ((y++)); ((x--)); continue; fi
-      if [ -z ${map[(y+1)*width+x+1]} ]; then ((y++)); ((x++)); continue; fi
+      [ ${#path[@]} -eq 0 ] && echo $i && exit
+      x=${path[${#path[@]}-2]}; y=${path[${#path[@]}-1]};
+      if [ $y -eq $maxy ]; then 
+        unset path[${#path[@]}-1]; unset path[${#path[@]}-1];
+        map[y*width+x]=2; break
+      fi
+      if [ -z ${map[(y+1)*width+x]} ]; then path+=($x $((y+1))); continue; fi
+      if [ -z ${map[(y+1)*width+x-1]} ]; then path+=($((x-1)) $((y+1))); continue; fi
+      if [ -z ${map[(y+1)*width+x+1]} ]; then path+=($((x+1)) $((y+1))); continue; fi
+      unset path[${#path[@]}-1]; unset path[${#path[@]}-1]
       map[y*width+x]=2; break
     done
   done
