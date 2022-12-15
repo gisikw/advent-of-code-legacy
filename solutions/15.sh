@@ -51,28 +51,51 @@ if [ $part -eq 1 ]; then
   )
 else
   for ((i=0; i<${#sensors[@]}; i+=3)); do
-    x=${sensors[i]}; y=${sensors[i+1]}; range=$((${sensors[i+2]}+1));
-    for ((j=0; j<=range; j++)); do
-      r=$((range-j))
-      edges=(
-        $((x+r)) $((y+j))
-        $((x-r)) $((y+j))
-        $((x+r)) $((y-j))
-        $((x-r)) $((y-j))
-      )
-      for ((k=0; k<8; k+=2)); do
-        a=${edges[k]}; b=${edges[k+1]}
-        [ $a -lt $search_min_x ] && continue
-        [ $a -gt $search_max_x ] && continue
-        [ $b -lt $search_min_y ] && continue
-        [ $b -gt $search_max_y ] && continue
-        for ((l=0; l < ${#sensors[@]}; l+=3)); do
-          c=${sensors[l]}; d=${sensors[l+1]}
-          [ $(((a < c ? c - a : a - c) + (b < d ? d - b : b - d))) -le ${sensors[l+2]} ] && continue 2
-        done
-        echo $(((a - x_offset) * 4000000 + b))
-        exit
+    x_origin=${sensors[i]}; y_origin=${sensors[i+1]}; range=$((${sensors[i+2]}));
+    x=$((x_origin-1)); y=$((y_origin+range+2))
+
+    while [ $y -ge $y_origin ]; do
+      ((y--)); ((x++))
+      [ $x -lt $search_min_x ] && continue; [ $x -gt $search_max_x ] && continue
+      [ $y -lt $search_min_y ] && continue; [ $y -gt $search_max_y ] && continue
+      for ((j=0; j < ${#sensors[@]}; j+=3)); do
+        dX=$((${sensors[j]}-x)); dY=$((${sensors[j+1]}-y))
+        [ $((${dX/-}+${dY/-})) -le ${sensors[j+2]} ] && continue 2
       done
+      echo $(((x - x_offset) * 4000000 + y)); exit
+    done
+
+    while [ $x -ge $x_origin ]; do
+      ((y--)); ((x--))
+      [ $x -lt $search_min_x ] && continue; [ $x -gt $search_max_x ] && continue
+      [ $y -lt $search_min_y ] && continue; [ $y -gt $search_max_y ] && continue
+      for ((j=0; j < ${#sensors[@]}; j+=3)); do
+        dX=$((${sensors[j]}-x)); dY=$((${sensors[j+1]}-y))
+        [ $((${dX/-}+${dY/-})) -le ${sensors[j+2]} ] && continue 2
+      done
+      echo $(((x - x_offset) * 4000000 + y)); exit
+    done
+
+    while [ $y -le $y_origin ]; do
+      ((y++)); ((x--))
+      [ $x -lt $search_min_x ] && continue; [ $x -gt $search_max_x ] && continue
+      [ $y -lt $search_min_y ] && continue; [ $y -gt $search_max_y ] && continue
+      for ((j=0; j < ${#sensors[@]}; j+=3)); do
+        dX=$((${sensors[j]}-x)); dY=$((${sensors[j+1]}-y))
+        [ $((${dX/-}+${dY/-})) -le ${sensors[j+2]} ] && continue 2
+      done
+      echo $(((x - x_offset) * 4000000 + y)); exit
+    done
+
+    while [ $x -le $x_origin ]; do
+      ((y++)); ((x++))
+      [ $x -lt $search_min_x ] && continue; [ $x -gt $search_max_x ] && continue
+      [ $y -lt $search_min_y ] && continue; [ $y -gt $search_max_y ] && continue
+      for ((j=0; j < ${#sensors[@]}; j+=3)); do
+        dX=$((${sensors[j]}-x)); dY=$((${sensors[j+1]}-y))
+        [ $((${dX/-}+${dY/-})) -le ${sensors[j+2]} ] && continue 2
+      done
+      echo $(((x - x_offset) * 4000000 + y)); exit
     done
   done
 fi
