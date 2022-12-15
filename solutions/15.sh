@@ -64,24 +64,26 @@ else
   for ((i=0; i<${#sensors[@]}; i+=3)); do
     x=${sensors[i]}; y=${sensors[i+1]}; range=$((${sensors[i+2]}+1));
     for ((j=0; j<=range; j++)); do
-      while read a b; do
+      edges=(
+        $((x+(range-j))) $((y+j))
+        $((x-(range-j))) $((y+j))
+        $((x+(range-j))) $((y-j))
+        $((x-(range-j))) $((y-j))
+      )
+      for ((k=0; k<8; k+=2)); do
+        a=${edges[k]}; b=${edges[k+1]}
         [ $a -lt $search_min_x ] && continue
         [ $a -gt $search_max_x ] && continue
         [ $b -lt $search_min_y ] && continue
         [ $b -gt $search_max_y ] && continue
-        for ((k=0; k < ${#sensors[@]}; k+=3)); do
-          deltaX=$((a - ${sensors[k]})); [ $deltaX -lt 0 ] && ((deltaX*=-1))
-          deltaY=$((b - ${sensors[k+1]})); [ $deltaY -lt 0 ] && ((deltaY*=-1))
-          [ $((deltaX + deltaY)) -le ${sensors[k+2]} ] && continue 2
+        for ((l=0; l < ${#sensors[@]}; l+=3)); do
+          deltaX=$((a - ${sensors[l]})); [ $deltaX -lt 0 ] && ((deltaX*=-1))
+          deltaY=$((b - ${sensors[l+1]})); [ $deltaY -lt 0 ] && ((deltaY*=-1))
+          [ $((deltaX + deltaY)) -le ${sensors[l+2]} ] && continue 2
         done
         echo $(((a - x_offset) * 4000000 + b))
         exit
-      done < <(
-        echo "$((x+(range-j))) $((y+j))"
-        echo "$((x-(range-j))) $((y+j))"
-        echo "$((x+(range-j))) $((y-j))"
-        echo "$((x-(range-j))) $((y-j))"
-      )
+      done
     done
   done
 fi
