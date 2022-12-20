@@ -25,6 +25,7 @@ if [ -z "$1" ]; then
 fi
 
 if [ -z "$2" ]; then
+  echo $(date)
   echo "Day $1"
 
   run_with_time $1 1
@@ -37,8 +38,8 @@ if [ -z "$2" ]; then
   exit 0
 fi
 
+echo $(date)
 echo "Day $1"
-
 run_with_time $1 $2
 echo "  Part $2 ($runtime)"
 echo "$output" | indent
