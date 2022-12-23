@@ -1,5 +1,14 @@
 #!/bin/bash
+file_dir=$(dirname ${BASH_SOURCE[0]})
+
+load_env() {
+  env_file="$file_dir/.env"
+  [ ! -f $env_file ] && echo "Cannot find .env file" && exit 1
+  source $env_file
+}
+
 indent() { sed 's/^/    /'; }
+
 run_with_time() {
   trap 'exit 1' SIGINT
   local lines=0
@@ -7,27 +16,67 @@ run_with_time() {
     if [ ${line:0:3} == 'END' ]; then
       printf "\033[s\033[$((++lines))A\033[10C\033[K${line:3})\033[u"
     else
-      [ ${line:0:8} == "EXITCODE" ] && echo $line && read <&1
       echo $line | indent
       ((lines++))
     fi
   done); return $?
 }
 
+run_solutions() {
+  date
+  for day in ${days[@]}; do
+    (( ${#day} == 1 )) && day_file="0$day" || day_file=$day
+    runner="./$year/$day_file/_run.sh"
+    [[ ! -f "$runner" ]] && continue
+    echo "Day $day"
+    for part in ${parts[@]}; do
+      echo "  Part $part (running...)"
+      run_with_time $runner $part
+    done
+  done
+}
+
+create_solution() {
+  [ -z "$day" ] && echo "usage: ./aoc new [year] day [language]" && exit 1
+  (( ${#day} == 1 )) && day_file="0$day" || day_file=$day
+
+  [ -f "$file_dir/$year/$day_file/_run.sh" ] && echo "You already have a solution for $year Day $day." && exit 1
+
+  load_env; [ -z "$ADVENT_SESSION_COOKIE" ] && echo "Session cookie not defined in your .env file" && exit 1
+  resp=$(curl -sIH "Cookie: session=$ADVENT_SESSION_COOKIE" https://adventofcode.com/$year/day/$day/input | head -n 1 | awk '{print $2}')
+  [ "$resp" != "200" ] && echo "Couldn't fetch input for $year Day $day. Response code: $resp" && exit 1
+
+  lang=$2
+  [ -z "$lang" ] && lang=$(ls $file_dir/templates | shuf -n 1) && echo "Language not specified. Selected '$lang' at random."
+
+  mkdir -p $file_dir/$year/$day_file
+  cp $file_dir/templates/$lang/* $file_dir/$year/$day_file
+  curl -sH "Cookie: session=$ADVENT_SESSION_COOKIE" https://adventofcode.com/$year/day/$day/input > $file_dir/$year/$day_file/input.txt
+  echo "New solution created in $year/$day_file/"
+  [ ! -z "$ADVENT_OPEN_CMD" ] && open_solution
+  # [ ! -z "$ADVENT_AFTER_CREATE" ] && solution_file=$file_dir/$year/$day_file/solution.* && eval $ADVENT_AFTER_CREATE
+}
+
+open_solution() {
+  [ -z "$day" ] && echo "usage: ./aoc open [year] day" && exit 1
+  (( ${#day} == 1 )) && day_file="0$day" || day_file=$day
+  load_env; [ -z "$ADVENT_OPEN_CMD" ] && echo "Open command not defined in your .env file" && exit 1
+  solution_file=$file_dir/$year/$day_file/solution.*
+  eval $ADVENT_OPEN_CMD
+}
+
+cmd=$1
+[ "$cmd" == "new" ] && shift
+[ "$cmd" == "open" ] && shift
+
 (( ${#1} == 4 )) && year=$1 && shift
 [ -z "$year" ] && year=$(date +%Y)
-day=$1; (( ${#day} == 1 )) && day="0$day"
+day=$1;
 [ -z "$day" ] && days=({1..25}) || days=($day)
 [ -z "$2" ] && parts=(1 2) || parts=($2)
 
-date
-for day in ${days[@]}; do
-  (( ${#day} == 1 )) && day_file="0$day" || day_file=$day
-  runner="./$year/$day_file/_run.sh"
-  [[ ! -f "$runner" ]] && continue
-  echo "Day $day"
-  for part in ${parts[@]}; do
-    echo "  Part $part (running...)"
-    run_with_time $runner $part
-  done
-done
+case $cmd in
+  new) create_solution $@;;
+  open) open_solution;;
+  *) run_solutions;;
+esac
