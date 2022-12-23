@@ -1,0 +1,33 @@
+#!/bin/bash
+indent() { sed 's/^/    /'; }
+run_with_time() {
+  trap 'exit 1' SIGINT
+  local lines=0
+  ($(which time) -ho >(awk '{ print "END" $1 }') $1 $(dirname $1)/input.txt $2 2>&1 | while read line; do
+    if [ ${line:0:3} == 'END' ]; then
+      printf "\033[s\033[$((++lines))A\033[10C\033[K${line:3})\033[u"
+    else
+      [ ${line:0:8} == "EXITCODE" ] && echo $line && read <&1
+      echo $line | indent
+      ((lines++))
+    fi
+  done); return $?
+}
+
+(( ${#1} == 4 )) && year=$1 && shift
+[ -z "$year" ] && year=$(date +%Y)
+day=$1; (( ${#day} == 1 )) && day="0$day"
+[ -z "$day" ] && days=({1..25}) || days=($day)
+[ -z "$2" ] && parts=(1 2) || parts=($2)
+
+date
+for day in ${days[@]}; do
+  (( ${#day} == 1 )) && day_file="0$day" || day_file=$day
+  runner="./$year/$day_file/_run.sh"
+  [[ ! -f "$runner" ]] && continue
+  echo "Day $day"
+  for part in ${parts[@]}; do
+    echo "  Part $part (running...)"
+    run_with_time $runner $part
+  done
+done
