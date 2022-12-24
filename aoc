@@ -13,7 +13,7 @@ run_with_time() {
   trap 'exit 1' SIGINT
   local lines=0
   ($(which time) -ho >(awk '{ print "END" $1 }') $1 $(dirname $1)/input.txt $2 2>&1 | while read line; do
-    if [ ${line:0:3} == 'END' ]; then
+    if [ "${line:0:3}" == 'END' ]; then
       printf "\033[s\033[$((++lines))A\033[10C\033[K${line:3})\033[u"
     else
       echo $line | indent
