@@ -54,14 +54,13 @@ create_solution() {
   curl -sH "Cookie: session=$ADVENT_SESSION_COOKIE" https://adventofcode.com/$year/day/$day/input > $file_dir/$year/$day_file/input.txt
   echo "New solution created in $year/$day_file/"
   [ ! -z "$ADVENT_OPEN_CMD" ] && open_solution
-  # [ ! -z "$ADVENT_AFTER_CREATE" ] && solution_file=$file_dir/$year/$day_file/solution.* && eval $ADVENT_AFTER_CREATE
 }
 
 open_solution() {
   [ -z "$day" ] && echo "usage: ./aoc open [year] day" && exit 1
   (( ${#day} == 1 )) && day_file="0$day" || day_file=$day
   load_env; [ -z "$ADVENT_OPEN_CMD" ] && echo "Open command not defined in your .env file" && exit 1
-  solution_file=$file_dir/$year/$day_file/solution.*
+  solution_file=$file_dir/$year/$day_file/[s,S]olution.*
   eval $ADVENT_OPEN_CMD
 }
 
