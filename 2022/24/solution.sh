@@ -47,7 +47,6 @@ approach_target() {
   cycle_blizzards
   build_map
   for ((; ; move++)); do
-    echo "Move $move"
     next_states=()
     for state in ${states[@]}; do
       read row col <<< ${state//,/ };
